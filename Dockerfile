@@ -80,6 +80,7 @@ ENV HOST=0.0.0.0
 ENV INSECURE=false
 ENV INIT_ENABLED=false
 ENV DISABLE_IPV6=false
+ENV APP_TITLE=WireGuard
 
 LABEL org.opencontainers.image.source=https://github.com/wg-easy/wg-easy
 

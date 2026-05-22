@@ -14,5 +14,6 @@ export default defineEventHandler(async () => {
     insecure,
     isAwg,
     firewallEnabled: wgInterface.firewallEnabled,
+    appTitle: WG_ENV.APP_TITLE,
   };
 });
