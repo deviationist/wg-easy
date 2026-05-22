@@ -37,6 +37,22 @@ export const WG_ENV = {
   PORT: assertEnv('PORT'),
   /** If IPv6 should be disabled */
   DISABLE_IPV6: process.env.DISABLE_IPV6 === 'true',
+  /**
+   * Trust an upstream reverse proxy to authenticate the user via a header
+   * (e.g. Authelia's `Remote-User`, oauth2-proxy's `X-Forwarded-User`).
+   *
+   * SECURITY: only enable when wg-easy is bound to a trusted interface
+   * (e.g. 127.0.0.1) or behind a reverse proxy that strips/sets the named
+   * header explicitly. With public exposure, anyone could forge the header.
+   *
+   * Local session/Basic auth continues to work alongside this — proxy auth
+   * is an additional path, not a replacement. This means an SSH-tunnelled
+   * login still works if your SSO provider is down.
+   */
+  TRUSTED_PROXY_AUTH: process.env.TRUSTED_PROXY_AUTH === 'true',
+  /** HTTP header carrying the authenticated username from the upstream proxy. */
+  TRUSTED_PROXY_AUTH_HEADER:
+    process.env.TRUSTED_PROXY_AUTH_HEADER ?? 'Remote-User',
   WG_EXECUTABLE: await detectAwg(),
 };
 

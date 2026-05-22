@@ -4,12 +4,14 @@ title: Optional Configuration
 
 You can set these environment variables to configure the container. They are not required, but can be useful in some cases.
 
-| Env            | Default   | Example     | Description                        |
-| -------------- | --------- | ----------- | ---------------------------------- |
-| `PORT`         | `51821`   | `6789`      | TCP port for Web UI.               |
-| `HOST`         | `0.0.0.0` | `localhost` | IP address web UI binds to.        |
-| `INSECURE`     | `false`   | `true`      | If access over http is allowed     |
-| `DISABLE_IPV6` | `false`   | `true`      | If IPv6 support should be disabled |
+| Env                         | Default       | Example         | Description                                                                              |
+| --------------------------- | ------------- | --------------- | ---------------------------------------------------------------------------------------- |
+| `PORT`                      | `51821`       | `6789`          | TCP port for Web UI.                                                                     |
+| `HOST`                      | `0.0.0.0`     | `localhost`     | IP address web UI binds to.                                                              |
+| `INSECURE`                  | `false`       | `true`          | If access over http is allowed                                                           |
+| `DISABLE_IPV6`              | `false`       | `true`          | If IPv6 support should be disabled                                                       |
+| `TRUSTED_PROXY_AUTH`        | `false`       | `true`          | Trust an upstream proxy to authenticate users via a header. See [Trusted-Proxy Auth](./trusted-proxy-auth.md). |
+| `TRUSTED_PROXY_AUTH_HEADER` | `Remote-User` | `X-Forwarded-User` | Name of the header carrying the authenticated username.                              |
 
 /// note | IPv6 Caveats
 

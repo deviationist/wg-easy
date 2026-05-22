@@ -41,7 +41,30 @@ export async function getCurrentUser(event: H3Event) {
   const authorization = getHeader(event, 'Authorization');
 
   let user: UserType | undefined = undefined;
-  if (session.data.userId) {
+
+  // Trusted-proxy auth: if enabled, look up the user by the header the upstream
+  // proxy supplies (Authelia's Remote-User, oauth2-proxy's X-Forwarded-User, etc.).
+  // When the header is *present*, it is authoritative — we do not fall through
+  // to session/Basic auth, since that would let a stale cookie override the
+  // SSO-claimed identity. When the header is *absent*, we fall through (so an
+  // SSH-tunnelled session-cookie login still works if the SSO provider is down).
+  if (WG_ENV.TRUSTED_PROXY_AUTH) {
+    const proxyUsername = getHeader(event, WG_ENV.TRUSTED_PROXY_AUTH_HEADER);
+    if (proxyUsername) {
+      user = await Database.users.getByUsername(proxyUsername);
+      if (!user) {
+        throw createError({
+          statusCode: 401,
+          statusMessage: 'Trusted-proxy user not found',
+        });
+      }
+      // user.enabled is checked by the common path below
+    }
+  }
+
+  if (user) {
+    // already authenticated via trusted proxy header
+  } else if (session.data.userId) {
     // Handle if authenticating using Session
     user = await Database.users.get(session.data.userId);
   } else if (authorization) {

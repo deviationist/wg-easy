@@ -80,6 +80,11 @@ ENV HOST=0.0.0.0
 ENV INSECURE=false
 ENV INIT_ENABLED=false
 ENV DISABLE_IPV6=false
+# Trusted-proxy auth. Default off; opt-in only when wg-easy is bound to a
+# trusted interface AND the upstream proxy strips client-supplied copies of
+# the named header. See docs/advanced/config/trusted-proxy-auth.md.
+ENV TRUSTED_PROXY_AUTH=false
+ENV TRUSTED_PROXY_AUTH_HEADER=Remote-User
 
 LABEL org.opencontainers.image.source=https://github.com/wg-easy/wg-easy
 

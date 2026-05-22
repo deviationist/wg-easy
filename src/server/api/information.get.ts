@@ -14,5 +14,6 @@ export default defineEventHandler(async () => {
     insecure,
     isAwg,
     firewallEnabled: wgInterface.firewallEnabled,
+    trustedProxyAuth: WG_ENV.TRUSTED_PROXY_AUTH,
   };
 });
