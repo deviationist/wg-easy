@@ -25,7 +25,26 @@ services:
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
-      # - NET_RAW # ⚠️ Uncomment if using Podman
+      # - NET_RAW # ⚠️ Required if you set `cap_drop: [ALL]` (Docker's default cap set
+      #            includes NET_RAW, so it's implicit otherwise). Also required under
+      #            rootful Podman, which does not include NET_RAW by default.
+    # ⚠️ Optional hardening — opt-in. See docs/advanced/config/hardening.md.
+    # Drops Linux capabilities the wg-easy process does not need, and runs the
+    # server as an unprivileged user (UID 911) instead of root. Requires the
+    # host to preload the `wireguard` kernel module if SYS_MODULE is also dropped.
+    #
+    # cap_drop:
+    #   - ALL
+    # cap_add:
+    #   - NET_ADMIN
+    #   - NET_RAW
+    #   - SYS_MODULE  # remove if the host preloads the wireguard module
+    # security_opt:
+    #   - no-new-privileges:true
+    # environment:
+    #   - DROP_PRIVILEGES=true
+    #   - PUID=911            # optional, override to match a host UID for bind-mounts
+    #   - PGID=911
     sysctls:
       - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.src_valid_mark=1
