@@ -14,5 +14,6 @@ export default defineEventHandler(async () => {
     insecure,
     isAwg,
     firewallEnabled: wgInterface.firewallEnabled,
+    disableAuth: WG_ENV.DISABLE_AUTH && !!WG_ENV.DISABLE_AUTH_USERNAME,
   };
 });

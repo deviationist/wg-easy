@@ -70,6 +70,14 @@
 const toast = useToast();
 const { t } = useI18n();
 
+// If DISABLE_AUTH is active, the login form is meaningless — every request is
+// already treated as the configured user. Bounce to root so the user lands on
+// the dashboard instead of staring at an unsubmittable form.
+const globalStore = useGlobalStore();
+if (globalStore.information?.disableAuth) {
+  await navigateTo('/', { redirectCode: 302 });
+}
+
 const authenticating = ref(false);
 const remember = ref(false);
 const username = ref<string>('');
