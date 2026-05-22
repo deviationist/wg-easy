@@ -42,13 +42,14 @@ useHead({
     {
       tagPriority: 'critical',
       // 1) Read `theme` cookie + matchMedia → set <html> class before first paint.
-      // 2) When the cookie is `system` (or absent), the @eschricht/nuxt-color-mode
-      //    module's reactive htmlAttrs.class transiently sets `light` for ~10ms
-      //    during hydration before it consults matchMedia. A MutationObserver
-      //    over the next 1000ms re-applies the system-resolved value whenever
-      //    the class disagrees, then disconnects. No-op when cookie is explicit
-      //    `dark`/`light` (no class fight).
-      innerHTML: `(function(){try{var m=document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/);var p=m?decodeURIComponent(m[1]):'system';var sys=p==='system'||!m;var d=p==='dark'||(p!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var want=d?'dark':'light';var h=document.documentElement;if(h.className!==want)h.className=want;if(sys){var start=performance.now();var mo=new MutationObserver(function(){if(h.className!==want)h.className=want;if(performance.now()-start>1000)mo.disconnect();});mo.observe(h,{attributes:true,attributeFilter:['class']});}}catch(e){}})();`,
+      // 2) Permanent MutationObserver re-applies the cookie-derived class
+      //    whenever something else (e.g. @eschricht/nuxt-color-mode's reactive
+      //    htmlAttrs.class) writes a different value, including empty. Re-reads
+      //    the cookie on every fire so a user toggle (cookie: system→light) is
+      //    honored immediately even if the library emits an empty class for
+      //    the new state. Also listens for OS prefers-color-scheme changes so
+      //    theme=system tracks the system in real time.
+      innerHTML: `(function(){try{function resolve(){var m=document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/);var p=m?decodeURIComponent(m[1]):'system';if(p==='dark')return 'dark';if(p==='light')return 'light';return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var h=document.documentElement;function apply(){var w=resolve();if(h.className!==w)h.className=w;}apply();new MutationObserver(apply).observe(h,{attributes:true,attributeFilter:['class']});matchMedia('(prefers-color-scheme: dark)').addEventListener('change',apply);}catch(e){}})();`,
     },
   ],
   style: [
