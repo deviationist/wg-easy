@@ -128,6 +128,12 @@ ENV PUID=911
 ENV PGID=911
 # Browser tab title — useful when running multiple wg-easy instances.
 ENV APP_TITLE=WireGuard
+# Disable-auth. Default off; opt-in by setting DISABLE_AUTH=true AND at least
+# one of DISABLE_AUTH_USER_ID / DISABLE_AUTH_USERNAME to identify an existing
+# user. See docs/advanced/config/disable-auth.md for the threat model.
+ENV DISABLE_AUTH=false
+ENV DISABLE_AUTH_USER_ID=
+ENV DISABLE_AUTH_USERNAME=
 
 LABEL org.opencontainers.image.source=https://github.com/wg-easy/wg-easy
 
