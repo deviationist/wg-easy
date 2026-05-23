@@ -17,7 +17,7 @@ const toastRef = useTemplateRef('toastRef');
 toast.setToast(toastRef);
 
 // make sure to fetch release early
-useGlobalStore();
+const globalStore = useGlobalStore();
 
 useHead({
   bodyAttrs: {
@@ -52,6 +52,7 @@ useHead({
       content: 'black-translucent',
     },
   ],
-  title: 'WireGuard',
+  // Reactive: re-renders when /api/information resolves and on subsequent refreshes.
+  title: computed(() => globalStore.information?.appTitle ?? 'WireGuard'),
 });
 </script>

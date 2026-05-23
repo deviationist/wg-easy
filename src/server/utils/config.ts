@@ -37,6 +37,8 @@ export const WG_ENV = {
   PORT: assertEnv('PORT'),
   /** If IPv6 should be disabled */
   DISABLE_IPV6: process.env.DISABLE_IPV6 === 'true',
+  /** Text shown in the browser tab title (does not affect the visible Web UI header) */
+  APP_TITLE: process.env.APP_TITLE ?? 'WireGuard',
   WG_EXECUTABLE: await detectAwg(),
 };
 

@@ -126,6 +126,8 @@ ENV DROP_PRIVILEGES=false
 # that owns the bind-mounted /etc/wireguard, if any.
 ENV PUID=911
 ENV PGID=911
+# Browser tab title — useful when running multiple wg-easy instances.
+ENV APP_TITLE=WireGuard
 
 LABEL org.opencontainers.image.source=https://github.com/wg-easy/wg-easy
 
