@@ -1,4 +1,4 @@
-FROM docker.io/library/node:krypton-alpine AS build
+FROM docker.io/library/node:krypton-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS build
 WORKDIR /app
 
 # update corepack
@@ -14,23 +14,28 @@ RUN pnpm install
 COPY src ./
 RUN pnpm build
 
+# renovate: datasource=github-releases depName=amnezia-vpn/amneziawg-tools
+ARG AWGTOOLS_BRANCH=v3.0.20260805
+# renovate: datasource=github-tags depName=amnezia-vpn/amneziawg-go
+ARG AWGGO_BRANCH=v3.0.20260805
+
 # Build amneziawg-tools
 RUN apk add linux-headers build-base go git && \
-    git clone https://github.com/amnezia-vpn/amneziawg-tools.git && \
-    git clone https://github.com/amnezia-vpn/amneziawg-go && \
+    git clone --depth 1 --branch ${AWGTOOLS_BRANCH} https://github.com/amnezia-vpn/amneziawg-tools.git && \
+    git clone --depth 1 --branch ${AWGGO_BRANCH} https://github.com/amnezia-vpn/amneziawg-go && \
     cd amneziawg-go && \
     make && \
     cd ../amneziawg-tools/src && \
     make && \
     sed -i 's|\[\[ $proto == -4 \]\] && cmd sysctl -q net\.ipv4\.conf\.all\.src_valid_mark=1|[[ $proto == -4 ]] \&\& [[ $(sysctl -n net.ipv4.conf.all.src_valid_mark) != 1 ]] \&\& cmd sysctl -q net.ipv4.conf.all.src_valid_mark=1|' ./wg-quick/linux.bash
 
-FROM docker.io/library/node:krypton-alpine AS build-libsql
+FROM docker.io/library/node:krypton-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS build-libsql
 WORKDIR /app
 RUN npm install --no-save --omit=dev libsql
 
 # Copy build result to a new image.
 # This saves a lot of disk space.
-FROM docker.io/library/node:krypton-alpine
+FROM docker.io/library/node:krypton-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43
 WORKDIR /app
 
 # Cap-free healthcheck: a wg interface present in sysfs is enough to know
@@ -76,11 +81,12 @@ RUN apk add --no-cache \
     setpriv \
     wireguard-go \
     wireguard-tools && \
-    sed -i 's|\[\[ $proto == -4 \]\] && cmd sysctl -q net\.ipv4\.conf\.all\.src_valid_mark=1|[[ $proto == -4 ]] \&\& [[ $(sysctl -n net.ipv4.conf.all.src_valid_mark) != 1 ]] \&\& cmd sysctl -q net.ipv4.conf.all.src_valid_mark=1|' /usr/bin/wg-quick && \
     # wg-quick's auto_su() re-execs the script via sudo when UID != 0. With
-    # DROP_PRIVILEGES=true we *want* to run as non-root with ambient caps —
+    # DROP_PRIVILEGES=true we *want* to run as non-root with ambient caps -
     # escalating via sudo would (a) fail since sudo isn't in the image, and
     # (b) discard the ambient caps even if it succeeded. Neuter the check.
+    # NOTE: upstream's own sysctl patch was removed in v15.4.0 (see #2630);
+    # only the auto_su neutering is ours and must survive future merges.
     sed -i '/\[\[ \$UID == 0 \]\] ||/c\	: # wg-easy: non-root with ambient caps; no sudo escalation needed' /usr/bin/wg-quick && \
     sed -i '/\[\[ \$UID == 0 \]\] ||/c\	: # wg-easy: non-root with ambient caps; no sudo escalation needed' /usr/bin/awg-quick
 

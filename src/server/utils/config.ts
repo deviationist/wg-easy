@@ -1,6 +1,13 @@
 import { createDebug } from 'obug';
 import packageJson from '@@/package.json';
 
+import { exec } from '#server/utils/cmd';
+import {
+  OAUTH_PROVIDERS,
+  isConfiguredOauthProvider,
+  isValidOauthProvider,
+} from '#server/utils/oauth';
+
 export const RELEASE = 'v' + packageJson.version;
 
 export const SERVER_DEBUG = createDebug('Server');
@@ -29,6 +36,11 @@ const detectAwg = async (): Promise<'awg' | 'wg'> => {
     }
   } else return 'wg';
 };
+
+const oauthProviders = process.env.OAUTH_PROVIDERS?.split(',')
+  .map((v) => v.trim())
+  .filter((v) => isValidOauthProvider(v))
+  .filter((v) => isConfiguredOauthProvider(OAUTH_PROVIDERS[v]));
 
 export const WG_ENV = {
   /** UI is hosted on HTTP instead of HTTPS */
@@ -60,7 +72,31 @@ export const WG_ENV = {
   /** Username of the user impersonated when DISABLE_AUTH is on. */
   DISABLE_AUTH_USERNAME: process.env.DISABLE_AUTH_USERNAME,
   WG_EXECUTABLE: await detectAwg(),
+  DISABLE_VERSION_CHECK: process.env.DISABLE_VERSION_CHECK === 'true',
+  /** List of enabled and configured OAuth providers */
+  OAUTH_PROVIDERS: oauthProviders,
+  /** List of allowed OAuth domains */
+  OAUTH_ALLOWED_DOMAINS: process.env.OAUTH_ALLOWED_DOMAINS?.split(',').map(
+    (v) => v.trim()
+  ),
+  /** Automatically register users that log in with an OAuth provider */
+  OAUTH_AUTO_REGISTER: process.env.OAUTH_AUTO_REGISTER === 'true',
+  /** Which OAuth provider to automatically launch */
+  OAUTH_AUTO_LAUNCH:
+    oauthProviders?.find((p) => p === process.env.OAUTH_AUTO_LAUNCH) ?? null,
+  /** Disable password authentication */
+  DISABLE_PASSWORD_AUTH: process.env.DISABLE_PASSWORD_AUTH === 'true',
 };
+
+if (WG_ENV.OAUTH_PROVIDERS && WG_ENV.OAUTH_PROVIDERS.length > 0) {
+  SERVER_DEBUG(`
+Enabled OAuth providers: ${WG_ENV.OAUTH_PROVIDERS.join(', ')}
+Allowed OAuth domains: ${WG_ENV.OAUTH_ALLOWED_DOMAINS?.join(', ') ?? 'All'}
+OAuth auto register: ${WG_ENV.OAUTH_AUTO_REGISTER ? 'Enabled' : 'Disabled'}
+Password authentication: ${WG_ENV.DISABLE_PASSWORD_AUTH ? 'Disabled' : 'Enabled'}
+Auto launch OAuth provider: ${WG_ENV.OAUTH_AUTO_LAUNCH ?? 'None'}
+`);
+}
 
 export const WG_INITIAL_ENV = {
   ENABLED: process.env.INIT_ENABLED === 'true',
